@@ -42,13 +42,17 @@ export function Sidebar() {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center gap-2 p-6 border-b border-border">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center glow-primary">
-              <Clock className="h-4 w-4 text-primary-foreground" />
+          <div className="flex items-center gap-3 p-6 border-b border-border">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-purple-500/20">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 4L12 12L6 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M18 4L12 12L18 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="8" r="2" fill="white" opacity="0.8"/>
+              </svg>
             </div>
             <div>
-              <h1 className="font-bold text-lg">RevealX</h1>
-              <p className="text-xs text-muted-foreground">SocialFi dApp</p>
+              <h1 className="font-bold text-lg bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">RevealX</h1>
+              <p className="text-xs text-muted-foreground">Prediction Protocol</p>
             </div>
           </div>
 
