@@ -1,3 +1,12 @@
+import { ethers } from 'ethers';
+import { retrieveFromIPFS } from './ipfs-service';
+
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
+const CONTRACT_ABI = [
+  "function getCapsule(uint256 _id) external view returns (tuple(uint256 id, address creator, address recipient, string ipfsCID, bytes encryptedKey, uint256 unlockTime, uint256 stakeAmount, address stakeToken, bool isUnlocked, bool stakeReleased))",
+  "function nextCapsuleId() external view returns (uint256)",
+];
+
 export interface TimeCapsule {
   id: string
   creator: string
@@ -9,6 +18,8 @@ export interface TimeCapsule {
   createdAt: number
   totalStaked: string
   predictionCount: number
+  recipient?: string
+  isUnlocked?: boolean
 }
 
 export interface Prediction {
@@ -20,7 +31,19 @@ export interface Prediction {
   createdAt: number
 }
 
-// Simulate smart contract interactions
+// Get a read-only contract instance using local Hardhat RPC
+function getReadOnlyContract(): ethers.Contract | null {
+  if (!CONTRACT_ADDRESS) {
+    console.error('[TimeCapsuleContract] No contract address configured');
+    return null;
+  }
+  
+  // Use localhost Hardhat network for local development (FREE!)
+  const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
+  return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+}
+
+// Real smart contract interactions
 export class TimeCapsuleContract {
   static async createCapsule(capsuleData: {
     title: string
@@ -29,55 +52,118 @@ export class TimeCapsuleContract {
     category: string
     isPublic: boolean
   }): Promise<string> {
-    // Simulate blockchain transaction delay
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    const capsuleId = "TC-" + Date.now().toString(36).toUpperCase()
-
-    // In a real implementation, this would interact with the smart contract
-    console.log("[v0] Creating capsule on blockchain:", capsuleData)
-
-    return capsuleId
+    // This is handled by contract-service.ts now
+    console.log("[TimeCapsuleContract] Creating capsule:", capsuleData)
+    return "CREATED"
   }
 
   static async getCapsule(capsuleId: string): Promise<TimeCapsule | null> {
-    // Simulate fetching from blockchain
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    // Mock capsule data
-    return {
-      id: capsuleId,
-      creator: "0x" + Math.random().toString(16).substr(2, 40),
-      title: "Sample Time Capsule",
-      contentHash: "Qm" + Math.random().toString(36).substr(2, 44),
-      unlockDate: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days from now
-      category: "personal",
-      isPublic: true,
-      createdAt: Date.now(),
-      totalStaked: "150.5",
-      predictionCount: 23,
+    try {
+      const contract = getReadOnlyContract();
+      if (!contract) return null;
+      
+      const capsule = await contract.getCapsule(capsuleId);
+      
+      // Try to get metadata from IPFS
+      let title = `Capsule #${capsuleId}`;
+      let category = 'personal';
+      
+      if (capsule.ipfsCID) {
+        try {
+          const ipfsData = await retrieveFromIPFS(capsule.ipfsCID);
+          title = ipfsData?.title || title;
+          category = ipfsData?.category || category;
+        } catch (e) {
+          console.error('Error fetching IPFS data:', e);
+        }
+      }
+      
+      return {
+        id: capsule.id.toString(),
+        creator: capsule.creator,
+        title: title,
+        contentHash: capsule.ipfsCID,
+        unlockDate: Number(capsule.unlockTime) * 1000, // Convert to milliseconds
+        category: category,
+        isPublic: true,
+        createdAt: Date.now(), // Contract doesn't store creation time
+        totalStaked: ethers.formatEther(capsule.stakeAmount),
+        predictionCount: 0,
+        recipient: capsule.recipient,
+        isUnlocked: capsule.isUnlocked,
+      };
+    } catch (error) {
+      console.error("[TimeCapsuleContract] Error getting capsule:", error);
+      return null;
     }
   }
 
   static async getUserCapsules(userAddress: string): Promise<TimeCapsule[]> {
-    // Simulate fetching user's capsules
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Mock data
-    return [
-      {
-        id: "TC-USER1",
-        creator: userAddress,
-        title: "My Future Predictions",
-        contentHash: "Qm" + Math.random().toString(36).substr(2, 44),
-        unlockDate: Date.now() + 15 * 24 * 60 * 60 * 1000,
-        category: "prediction",
-        isPublic: true,
-        createdAt: Date.now() - 5 * 24 * 60 * 60 * 1000,
-        totalStaked: "75.2",
-        predictionCount: 12,
-      },
-    ]
+    try {
+      const contract = getReadOnlyContract();
+      if (!contract) {
+        console.error('[TimeCapsuleContract] Contract not available');
+        return [];
+      }
+      
+      const capsules: TimeCapsule[] = [];
+      const nextId = await contract.nextCapsuleId();
+      const totalCapsules = Number(nextId);
+      
+      console.log(`[TimeCapsuleContract] Scanning ${totalCapsules} capsules for user ${userAddress}`);
+      
+      // Iterate through all capsules to find user's capsules
+      for (let i = 0; i < totalCapsules; i++) {
+        try {
+          const capsule = await contract.getCapsule(i);
+          
+          // Check if user is creator or recipient
+          if (capsule.creator.toLowerCase() === userAddress.toLowerCase() ||
+              capsule.recipient.toLowerCase() === userAddress.toLowerCase()) {
+            
+            console.log(`[TimeCapsuleContract] Found capsule ${i} for user`);
+            
+            // Try to get metadata from IPFS
+            let title = `Capsule #${i}`;
+            let category = 'personal';
+            
+            if (capsule.ipfsCID) {
+              try {
+                const ipfsData = await retrieveFromIPFS(capsule.ipfsCID);
+                title = ipfsData?.title || title;
+                category = ipfsData?.category || category;
+              } catch (e) {
+                // Ignore IPFS errors
+              }
+            }
+            
+            capsules.push({
+              id: capsule.id.toString(),
+              creator: capsule.creator,
+              title: title,
+              contentHash: capsule.ipfsCID,
+              unlockDate: Number(capsule.unlockTime) * 1000, // Convert to milliseconds
+              category: category,
+              isPublic: true,
+              createdAt: Date.now(),
+              totalStaked: ethers.formatEther(capsule.stakeAmount),
+              predictionCount: 0,
+              recipient: capsule.recipient,
+              isUnlocked: capsule.isUnlocked,
+            });
+          }
+        } catch (e) {
+          // Capsule might not exist or fetch error
+          console.error(`[TimeCapsuleContract] Error fetching capsule ${i}:`, e);
+        }
+      }
+      
+      console.log(`[TimeCapsuleContract] Found ${capsules.length} capsules for user`);
+      return capsules;
+    } catch (error) {
+      console.error("[TimeCapsuleContract] Error getting user capsules:", error);
+      return [];
+    }
   }
 
   static async stakePrediction(
@@ -85,7 +171,7 @@ export class TimeCapsuleContract {
     prediction: "popular" | "unpopular",
     amount: string,
   ): Promise<string> {
-    // Simulate staking transaction
+    // Simulate staking transaction (not implemented in current contract)
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
     const predictionId = "PRED-" + Date.now().toString(36).toUpperCase()
@@ -96,35 +182,50 @@ export class TimeCapsuleContract {
   }
 
   static async getCapsulesForPrediction(): Promise<TimeCapsule[]> {
-    // Simulate fetching capsules available for prediction
-    await new Promise((resolve) => setTimeout(resolve, 800))
-
-    // Mock data
-    return [
-      {
-        id: "TC-PRED1",
-        creator: "0x" + Math.random().toString(16).substr(2, 40),
-        title: "AI Will Replace Most Jobs by 2030",
-        contentHash: "Qm" + Math.random().toString(36).substr(2, 44),
-        unlockDate: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1 year
-        category: "prediction",
-        isPublic: true,
-        createdAt: Date.now() - 10 * 24 * 60 * 60 * 1000,
-        totalStaked: "1250.8",
-        predictionCount: 89,
-      },
-      {
-        id: "TC-PRED2",
-        creator: "0x" + Math.random().toString(16).substr(2, 40),
-        title: "My Startup Will Be Worth $1M",
-        contentHash: "Qm" + Math.random().toString(36).substr(2, 44),
-        unlockDate: Date.now() + 180 * 24 * 60 * 60 * 1000, // 6 months
-        category: "goal",
-        isPublic: true,
-        createdAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
-        totalStaked: "892.3",
-        predictionCount: 45,
-      },
-    ]
+    try {
+      const contract = getReadOnlyContract();
+      if (!contract) return [];
+      
+      // Get all public capsules for prediction
+      const capsules: TimeCapsule[] = [];
+      const nextId = await contract.nextCapsuleId();
+      const totalCapsules = Math.min(Number(nextId), 10); // Limit to 10 for performance
+      
+      for (let i = 0; i < totalCapsules; i++) {
+        try {
+          const capsule = await contract.getCapsule(i);
+          
+          let title = `Capsule #${i}`;
+          if (capsule.ipfsCID) {
+            try {
+              const ipfsData = await retrieveFromIPFS(capsule.ipfsCID);
+              title = ipfsData?.title || title;
+            } catch (e) {
+              // Ignore IPFS errors
+            }
+          }
+          
+          capsules.push({
+            id: capsule.id.toString(),
+            creator: capsule.creator,
+            title: title,
+            contentHash: capsule.ipfsCID,
+            unlockDate: Number(capsule.unlockTime) * 1000,
+            category: 'prediction',
+            isPublic: true,
+            createdAt: Date.now(),
+            totalStaked: ethers.formatEther(capsule.stakeAmount),
+            predictionCount: 0,
+          });
+        } catch (e) {
+          // Skip errors
+        }
+      }
+      
+      return capsules;
+    } catch (error) {
+      console.error("[TimeCapsuleContract] Error getting capsules for prediction:", error);
+      return [];
+    }
   }
 }

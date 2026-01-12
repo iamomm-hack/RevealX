@@ -4,16 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Clock, Lock, Unlock, Eye, Users, Coins, Calendar } from "lucide-react"
+import { Clock, Lock, Unlock, Eye, Users, Coins, Calendar, Heart } from "lucide-react"
 import type { TimeCapsule } from "@/lib/smart-contracts"
 
 interface CapsuleCardProps {
   capsule: TimeCapsule
   onUnlock: (capsule: TimeCapsule) => void
+  onDelete?: (capsule: TimeCapsule) => void
+  onLike?: (capsule: TimeCapsule) => void
   showOwnership: boolean
+  isCreator?: boolean
+  likes?: number
+  hasLiked?: boolean
 }
 
-export function CapsuleCard({ capsule, onUnlock, showOwnership }: CapsuleCardProps) {
+export function CapsuleCard({ capsule, onUnlock, onDelete, onLike, showOwnership, isCreator = false, likes = 0, hasLiked = false }: CapsuleCardProps) {
   const isUnlocked = capsule.unlockDate <= Date.now()
   const daysUntilUnlock = Math.ceil((capsule.unlockDate - Date.now()) / (1000 * 60 * 60 * 24))
   const unlockDate = new Date(capsule.unlockDate)
@@ -101,15 +106,24 @@ export function CapsuleCard({ capsule, onUnlock, showOwnership }: CapsuleCardPro
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-3 gap-4 text-sm">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">{capsule.predictionCount} predictions</span>
           </div>
           <div className="flex items-center gap-2">
             <Coins className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">{capsule.totalStaked} MATIC</span>
+            <span className="text-muted-foreground">{capsule.totalStaked} ETH</span>
           </div>
+          {onLike && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onLike(capsule); }}
+              className={`flex items-center gap-1 hover:text-red-500 transition-colors ${hasLiked ? 'text-red-500' : 'text-muted-foreground'}`}
+            >
+              <Heart className={`h-4 w-4 ${hasLiked ? 'fill-red-500' : ''}`} />
+              <span>{likes}</span>
+            </button>
+          )}
         </div>
 
         {/* Owner Info */}
@@ -122,24 +136,41 @@ export function CapsuleCard({ capsule, onUnlock, showOwnership }: CapsuleCardPro
           </div>
         )}
 
-        {/* Action Button */}
-        <Button
-          onClick={() => onUnlock(capsule)}
-          variant={isUnlocked ? "default" : "outline"}
-          className={`w-full gap-2 ${isUnlocked ? "glow-primary" : ""}`}
-        >
-          {isUnlocked ? (
-            <>
-              <Eye className="h-4 w-4" />
-              View Content
-            </>
-          ) : (
-            <>
-              <Clock className="h-4 w-4" />
-              View Details
-            </>
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Button
+            onClick={() => onUnlock(capsule)}
+            variant={isUnlocked ? "default" : "outline"}
+            className={`flex-1 gap-2 ${isUnlocked ? "glow-primary" : ""}`}
+          >
+            {isUnlocked ? (
+              <>
+                <Eye className="h-4 w-4" />
+                View Content
+              </>
+            ) : (
+              <>
+                <Clock className="h-4 w-4" />
+                View Details
+              </>
+            )}
+          </Button>
+          {isCreator && !isUnlocked && onDelete && (
+            <Button
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(capsule)
+              }}
+              variant="destructive"
+              size="icon"
+              title="Delete Capsule"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                <path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8ZM9 11H11V17H9V11ZM13 11H15V17H13V11ZM9 4V6H15V4H9Z"/>
+              </svg>
+            </Button>
           )}
-        </Button>
+        </div>
       </CardContent>
     </Card>
   )

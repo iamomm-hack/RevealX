@@ -9,15 +9,18 @@ import { useWallet } from "@/lib/wallet-context"
 import { TimeCapsuleContract, type TimeCapsule } from "@/lib/smart-contracts"
 import { CapsuleCard } from "@/components/capsule-card"
 import { UnlockModal } from "@/components/unlock-modal"
+import { timeCapsuleService } from "@/lib/contract-service"
+import { toast } from "sonner"
 import Link from "next/link"
 
 export default function CapsulesPage() {
   const [userCapsules, setUserCapsules] = useState<TimeCapsule[]>([])
   const [allCapsules, setAllCapsules] = useState<TimeCapsule[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [selectedCapsule, setSelectedCapsule] = useState<TimeCapsule | null>(null)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
-  const { isConnected, address, connectWallet } = useWallet()
+  const { isConnected, address, connectWallet, provider } = useWallet()
 
   useEffect(() => {
     if (isConnected && address) {
@@ -46,6 +49,28 @@ export default function CapsulesPage() {
     setSelectedCapsule(capsule)
     setUnlockModalOpen(true)
   }
+
+  const handleDelete = async (capsule: TimeCapsule) => {
+    if (!confirm("Are you sure you want to delete this capsule? This will refund your stake and all predictions.")) {
+      return
+    }
+    
+    try {
+      setDeleting(capsule.id)
+      if (provider) {
+        await timeCapsuleService.initialize(provider)
+      }
+      await timeCapsuleService.deleteCapsule(capsule.id)
+      toast.success("Capsule deleted successfully!")
+      loadCapsules()
+    } catch (error: any) {
+      console.error("Failed to delete:", error)
+      toast.error(error?.message || "Failed to delete capsule")
+    } finally {
+      setDeleting(null)
+    }
+  }
+
 
   const unlockedCapsules = userCapsules.filter((c) => c.unlockDate <= Date.now())
   const lockedCapsules = userCapsules.filter((c) => c.unlockDate > Date.now())
@@ -151,7 +176,14 @@ export default function CapsulesPage() {
               ) : userCapsules.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {userCapsules.map((capsule) => (
-                    <CapsuleCard key={capsule.id} capsule={capsule} onUnlock={handleUnlock} showOwnership={false} />
+                    <CapsuleCard 
+                      key={capsule.id} 
+                      capsule={capsule} 
+                      onUnlock={handleUnlock} 
+                      onDelete={handleDelete}
+                      showOwnership={false} 
+                      isCreator={capsule.creator.toLowerCase() === address?.toLowerCase()}
+                    />
                   ))}
                 </div>
               ) : (

@@ -1,11 +1,13 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Bell } from "lucide-react"
 import { WalletButton } from "@/components/wallet-button"
-import { NetworkSelector } from "@/components/network-selector"
+import { ChainSwitcher } from "@/components/chain-switcher"
+import { NotificationDropdown } from "@/components/notification-dropdown"
+import { useWallet } from "@/lib/wallet-context"
 
 export function Header() {
+  const { chain, setChain } = useWallet()
+
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-6">
@@ -19,18 +21,13 @@ export function Header() {
 
         {/* Right side - actions */}
         <div className="flex items-center gap-4">
-          {/* Network selector */}
+          {/* Chain Switcher */}
           <div className="hidden sm:flex items-center gap-2">
-            <NetworkSelector />
+            <ChainSwitcher currentChain={chain} onChainChange={setChain} />
           </div>
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-4 w-4" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full flex items-center justify-center">
-              <span className="text-xs text-destructive-foreground font-bold">3</span>
-            </div>
-          </Button>
+          <NotificationDropdown />
 
           {/* Wallet connection */}
           <WalletButton />
@@ -39,3 +36,4 @@ export function Header() {
     </header>
   )
 }
+

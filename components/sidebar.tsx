@@ -5,14 +5,16 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Home, Plus, Clock, TrendingUp, Trophy, Search, Menu, X } from "lucide-react"
+import { Home, Plus, Clock, TrendingUp, Trophy, Menu, X, Eye, User, Search } from "lucide-react"
 
 const navigation = [
   { name: "Home", href: "/", icon: Home },
   { name: "Create Capsule", href: "/create", icon: Plus },
   { name: "My Capsules", href: "/capsules", icon: Clock },
-  { name: "Predictions", href: "/predictions", icon: TrendingUp },
+  { name: "Explore", href: "/explore", icon: Eye },
+  { name: "My Predictions", href: "/my-predictions", icon: TrendingUp },
   { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
+  { name: "Profile", href: "/profile", icon: User },
 ]
 
 export function Sidebar() {
@@ -45,7 +47,7 @@ export function Sidebar() {
               <Clock className="h-4 w-4 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-bold text-lg">TimeCapsule</h1>
+              <h1 className="font-bold text-lg">RevealX</h1>
               <p className="text-xs text-muted-foreground">SocialFi dApp</p>
             </div>
           </div>

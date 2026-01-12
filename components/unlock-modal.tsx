@@ -5,8 +5,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Unlock, Lock, Calendar, Users, Coins, Eye, Clock, Share, Download } from "lucide-react"
+import { Unlock, Lock, Calendar, Users, Coins, Eye, Clock, Share, Download, Gift } from "lucide-react"
 import type { TimeCapsule } from "@/lib/smart-contracts"
+import { timeCapsuleService, CATEGORY_NAMES } from "@/lib/contract-service"
+import { useWallet } from "@/lib/wallet-context"
+import { toast } from "sonner"
 
 interface UnlockModalProps {
   capsule: TimeCapsule | null
@@ -17,7 +20,9 @@ interface UnlockModalProps {
 
 export function UnlockModal({ capsule, open, onOpenChange, onUnlockComplete }: UnlockModalProps) {
   const [isUnlocking, setIsUnlocking] = useState(false)
+  const [isClaiming, setIsClaiming] = useState(false)
   const [unlockedContent, setUnlockedContent] = useState<string | null>(null)
+  const { provider, address } = useWallet()
 
   if (!capsule) return null
 
@@ -26,33 +31,42 @@ export function UnlockModal({ capsule, open, onOpenChange, onUnlockComplete }: U
   const daysUntilUnlock = Math.ceil((capsule.unlockDate - Date.now()) / (1000 * 60 * 60 * 24))
 
   const handleUnlock = async () => {
-    if (!isUnlocked) return
+    if (!isUnlocked || !provider) return
 
     setIsUnlocking(true)
     try {
-      // Simulate decryption process
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Mock decrypted content
-      const mockContent = `This is the decrypted content of "${capsule.title}". 
-
-This message was written on ${new Date(capsule.createdAt).toLocaleDateString()} and was meant to be revealed today.
-
-Here's what I wanted to share with the future:
-
-"Looking back at this moment, I hope the predictions I made came true. The world of Web3 and decentralized social networks has evolved so much since I wrote this. I'm curious to see how the community reacted to this capsule and whether people found it interesting or not.
-
-Time capsules are such a fascinating way to connect with the future. It's like sending a message to yourself and the world at a specific point in time."
-
-Thank you for being part of this journey!
-
-- The Creator`
-
-      setUnlockedContent(mockContent)
-    } catch (error) {
-      console.error("[v0] Failed to unlock capsule:", error)
+      await timeCapsuleService.initialize(provider)
+      await timeCapsuleService.unlockCapsule(capsule.id)
+      
+      toast.success("Capsule unlocked! Stake returned to recipient.")
+      
+      // Show decrypted content (in real app, would fetch from IPFS and decrypt)
+      setUnlockedContent(`Your capsule "${capsule.title}" has been unlocked!\n\nCategory: ${CATEGORY_NAMES[(capsule as any).actualCategory] || 'Unknown'}\n\nYour staked amount has been returned.`)
+      
+      onUnlockComplete()
+    } catch (error: any) {
+      console.error("Failed to unlock capsule:", error)
+      toast.error(error?.message || "Failed to unlock capsule")
     } finally {
       setIsUnlocking(false)
+    }
+  }
+
+  const handleClaimReward = async () => {
+    if (!provider) return
+
+    setIsClaiming(true)
+    try {
+      await timeCapsuleService.initialize(provider)
+      await timeCapsuleService.claimReward(capsule.id)
+      
+      toast.success("Prediction reward claimed successfully!")
+      onUnlockComplete()
+    } catch (error: any) {
+      console.error("Failed to claim reward:", error)
+      toast.error(error?.message || "Failed to claim reward - maybe wrong prediction?")
+    } finally {
+      setIsClaiming(false)
     }
   }
 
@@ -79,7 +93,7 @@ Thank you for being part of this journey!
             {capsule.title}
           </DialogTitle>
           <DialogDescription>
-            {isUnlocked ? "This time capsule has been unlocked" : "This time capsule is still locked"}
+            {isUnlocked ? "This time capsule can be unlocked" : "This time capsule is still locked"}
           </DialogDescription>
         </DialogHeader>
 
@@ -106,14 +120,14 @@ Thank you for being part of this journey!
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-muted-foreground">Predictions</p>
-                    <p className="font-medium">{capsule.predictionCount}</p>
+                    <p className="font-medium">{capsule.predictionCount || 0}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Coins className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-muted-foreground">Total Staked</p>
-                    <p className="font-medium">{capsule.totalStaked} MATIC</p>
+                    <p className="font-medium">{capsule.totalStaked} ETH</p>
                   </div>
                 </div>
               </div>
@@ -123,7 +137,7 @@ Thank you for being part of this journey!
                 {isUnlocked ? (
                   <Badge variant="default" className="gap-1 bg-accent text-accent-foreground">
                     <Unlock className="h-3 w-3" />
-                    Unlocked
+                    Ready to Unlock
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="gap-1">
@@ -173,16 +187,39 @@ Thank you for being part of this journey!
                     <Unlock className="h-8 w-8 text-primary mx-auto mb-3" />
                     <p className="font-medium text-primary">Ready to unlock!</p>
                     <p className="text-sm text-muted-foreground">
-                      Click the button below to decrypt and view the content
+                      Click the button below to unlock and claim your stake
                     </p>
                   </div>
                   <Button onClick={handleUnlock} disabled={isUnlocking} className="glow-primary">
-                    {isUnlocking ? "Decrypting..." : "Unlock Content"}
+                    {isUnlocking ? "Unlocking..." : "Unlock & Claim Stake"}
                   </Button>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Claim Prediction Reward Section */}
+          {isUnlocked && (
+            <Card className="border-accent/30 bg-accent/5">
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Gift className="h-4 w-4 text-accent" />
+                  Claim Prediction Reward
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  If you made a correct prediction on this capsule, claim your reward!
+                </p>
+                <Button 
+                  onClick={handleClaimReward} 
+                  disabled={isClaiming}
+                  variant="outline"
+                  className="w-full border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+                >
+                  {isClaiming ? "Claiming..." : "Claim Prediction Reward"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Action Buttons */}
           <div className="flex gap-3">
