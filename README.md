@@ -1,3 +1,6 @@
+<img width="324" height="171" alt="image" src="https://github.com/user-attachments/assets/2ae64d8c-a2f8-4134-90b9-1858c0bc4fb3" />
+
+
 # RevealX
 
 **A Decentralized Time-Locked Prediction Protocol**
