@@ -73,7 +73,8 @@ RevealX follows a decentralized architecture with clear separation between on-ch
 
 ### Flow Diagram
 
-![Flow Diagram](./assets/flow-diagram.png)
+<img width="801" height="476" alt="Screenshot 2026-01-12 142254" src="https://github.com/user-attachments/assets/fb9f607d-66f1-4099-ab63-83a858d8567c" />
+
 
 ---
 
@@ -104,7 +105,7 @@ RevealX follows a decentralized architecture with clear separation between on-ch
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/revealx.git
+git clone https://github.com/iamomm-hack/revealx.git
 cd revealx
 
 # Install frontend dependencies
