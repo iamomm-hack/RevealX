@@ -1,12 +1,12 @@
 import { 
   Connection, 
   PublicKey, 
-  Transaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
   clusterApiUrl
 } from '@solana/web3.js';
-import { AnchorProvider, Program, BN, Idl } from '@coral-xyz/anchor';
+import { AnchorProvider, Program, BN } from '@coral-xyz/anchor';
+import type { Idl } from '@coral-xyz/anchor';
 
 // Program ID from Anchor.toml
 const PROGRAM_ID = new PublicKey('GccELE2LzH3tot4qx6ooEjxryaAdZNJq4oP6quMhySKT');
@@ -16,23 +16,26 @@ export enum SolanaCategory {
   StartupLaunch = 0,
   Marriage = 1,
   Breakup = 2,
-  CryptoProfit = 3,
-  JobAnnouncement = 4,
-  Travel = 5,
-  Graduation = 6,
-  Secret = 7,
-  Other = 8
+  Wedding = 3,
+  Travel = 4,
+  Graduation = 5,
+  Secret = 6,
+  JobAnnouncement = 7,
+  CryptoProfit = 8,
+  Other = 9,
+
 }
 
 export const SOLANA_CATEGORY_NAMES = [
   'Startup Launch',
   'Marriage',
   'Breakup',
-  'Crypto Profit',
-  'Job Announcement',
+  'Wedding',
   'Travel',
   'Graduation',
   'Secret',
+  'Job Announcement',
+  'Crypto Profit',
   'Other'
 ];
 
@@ -60,7 +63,14 @@ export interface SolanaPrediction {
 }
 
 // Simplified IDL for the program
-const IDL: Idl = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const IDL = {
+  address: PROGRAM_ID.toString(),
+  metadata: {
+    name: "time_capsule_program",
+    version: "0.1.0",
+    spec: "0.1.0"
+  },
   version: "0.1.0",
   name: "time_capsule_program",
   instructions: [
@@ -176,12 +186,11 @@ export class SolanaTimeCapsuleService {
   }
 
   async initialize(wallet: any) {
-    // @ts-ignore
     this.provider = new AnchorProvider(this.connection, wallet, {
       preflightCommitment: 'confirmed'
     });
-    // @ts-ignore
-    this.program = new Program(IDL, PROGRAM_ID, this.provider);
+    // @ts-ignore - IDL type compatibility
+    this.program = new Program(IDL as Idl, PROGRAM_ID, this.provider);
   }
 
   // Get PDA for capsule counter
