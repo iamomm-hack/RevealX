@@ -88,7 +88,7 @@ export function LeaderboardTable() {
   }, [])
 
   const capsules = useMemo(() => {
-    // sort by total staked desc
+    
     return [...MOCK_CAPSULES].sort((a, b) => b.totalStaked - a.totalStaked)
   }, [])
 
@@ -99,7 +99,7 @@ export function LeaderboardTable() {
           <div className="flex items-center justify-between p-4 border-b">
             <TabsList>
               <TabsTrigger value="predictors">Predictors</TabsTrigger>
-              <TabsTrigger value="capsules">Capsules</TabsTrigger>
+              <TabsTrigger value="capsules">Capsulesk</TabsTrigger>
             </TabsList>
             <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground pr-1">
               <span>Updated</span>
