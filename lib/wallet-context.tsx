@@ -62,7 +62,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
             // @ts-ignore
             await solanaTimeCapsuleService.initialize({
               publicKey: solPublicKey,
+              // @ts-ignore - signTransaction exists on SignerWalletAdapter
               signTransaction: solWallet?.adapter.signTransaction,
+              // @ts-ignore - signAllTransactions exists on SignerWalletAdapter
               signAllTransactions: solWallet?.adapter.signAllTransactions,
             });
 
@@ -166,12 +168,36 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     } else {
       // Connect Solana
       try {
-        const phantom = solWallets.find(w => w.adapter.name === 'Phantom');
-        if (phantom) {
-          solSelect(phantom.adapter.name);
-          await phantom.adapter.connect();
+        // Check which wallets are actually INSTALLED (not just registered)
+        const installed = solWallets.filter(
+          w => w.readyState === 'Installed' || w.readyState === 'Loadable'
+        );
+        const phantom = installed.find(w => w.adapter.name === 'Phantom');
+        const solflare = installed.find(w => w.adapter.name === 'Solflare');
+        const wallet = phantom || solflare;
+        
+        if (wallet) {
+          solSelect(wallet.adapter.name);
+          // Wait for React to process the selection before connecting
+          await new Promise(resolve => setTimeout(resolve, 300));
+          try {
+            await solConnect();
+          } catch (e) {
+            // Auto-connect may handle it via the useEffect
+            console.log("solConnect:", e);
+          }
         } else {
-           alert("Phantom wallet not found");
+          // No wallet extension installed
+          setWalletState(prev => ({ ...prev, isConnecting: false }));
+          const install = window.confirm(
+            "No Solana wallet extension detected!\n\nYou need Phantom or Solflare browser extension.\n\nClick OK to install Phantom, or Cancel for Solflare."
+          );
+          if (install) {
+            window.open("https://phantom.app/", "_blank");
+          } else {
+            window.open("https://solflare.com/", "_blank");
+          }
+          return;
         }
       } catch (error) {
         console.error("Failed to connect Solana wallet:", error);
@@ -217,8 +243,34 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           params: [{ chainId: networkId }],
         });
       } catch (error: any) {
-        if (error.code === 4902) console.error('Network not added');
-        throw error;
+        // Network not added to MetaMask — auto-add it
+        if (error.code === 4902) {
+          const networks: Record<string, any> = {
+            '0x66eee': {
+              chainId: '0x66eee',
+              chainName: 'Arbitrum Sepolia',
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['https://sepolia-rollup.arbitrum.io/rpc'],
+              blockExplorerUrls: ['https://sepolia.arbiscan.io'],
+            },
+            '0xa4b1': {
+              chainId: '0xa4b1',
+              chainName: 'Arbitrum One',
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              rpcUrls: ['https://arb1.arbitrum.io/rpc'],
+              blockExplorerUrls: ['https://arbiscan.io'],
+            },
+          };
+          const networkParams = networks[networkId];
+          if (networkParams) {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [networkParams],
+            });
+          }
+        } else {
+          throw error;
+        }
       }
     }
   }

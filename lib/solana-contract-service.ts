@@ -232,6 +232,7 @@ export class SolanaTimeCapsuleService {
     if (!this.program || !this.provider) throw new Error('Not initialized');
 
     const [counterPDA] = this.getCounterPDA();
+    // @ts-ignore - Anchor dynamic account namespace
     const counterAccount = await this.program.account.capsuleCounter.fetch(counterPDA);
     const capsuleId = (counterAccount as any).count.toNumber();
     const [capsulePDA] = this.getCapsulePDA(capsuleId);
@@ -319,6 +320,7 @@ export class SolanaTimeCapsuleService {
 
     try {
       const [capsulePDA] = this.getCapsulePDA(parseInt(capsuleId));
+      // @ts-ignore - Anchor dynamic account namespace
       const capsule = await this.program.account.capsule.fetch(capsulePDA);
       
       return {
@@ -345,6 +347,7 @@ export class SolanaTimeCapsuleService {
 
     const [counterPDA] = this.getCounterPDA();
     try {
+      // @ts-ignore - Anchor dynamic account namespace
       const counter = await this.program.account.capsuleCounter.fetch(counterPDA);
       return (counter as any).count.toNumber();
     } catch {

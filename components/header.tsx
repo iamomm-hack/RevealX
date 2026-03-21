@@ -3,7 +3,10 @@
 import { WalletButton } from "@/components/wallet-button"
 import { ChainSwitcher } from "@/components/chain-switcher"
 import { NotificationDropdown } from "@/components/notification-dropdown"
+import { Button } from "@/components/ui/button"
 import { useWallet } from "@/lib/wallet-context"
+import { Book } from "lucide-react"
+import Link from "next/link"
 
 export function Header() {
   const { chain, setChain } = useWallet()
@@ -28,6 +31,14 @@ export function Header() {
 
           {/* Notifications */}
           <NotificationDropdown />
+
+          {/* Docs Link */}
+          <Link href="/docs" className="relative group">
+            <Button variant="ghost" size="icon" className="hover:bg-muted relative">
+              <Book className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-destructive"></span>
+            </Button>
+          </Link>
 
           {/* Wallet connection */}
           <WalletButton />

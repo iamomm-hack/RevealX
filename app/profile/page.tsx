@@ -230,7 +230,7 @@ export default function ProfilePage() {
               <div className="flex items-center justify-center md:justify-start gap-4 mt-2">
                 <Badge variant="secondary" className="text-lg px-3 py-1">
                   <Coins className="h-4 w-4 mr-1" />
-                  {parseFloat(balance).toFixed(4)} ETH
+                  {parseFloat(balance || "0").toFixed(4)} ETH
                 </Badge>
                 <Badge variant="outline" className="text-lg px-3 py-1">
                   <Star className="h-4 w-4 mr-1 fill-yellow-400 text-yellow-400" />

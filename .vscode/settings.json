@@ -1,0 +1,8 @@
+{
+  "typescript.tsserver.watchOptions": {
+    "excludeDirectories": ["**/smart-contracts/node_modules"]
+  },
+  "files.exclude": {
+    "smart-contracts/node_modules": true
+  }
+}

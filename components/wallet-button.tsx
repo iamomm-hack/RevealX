@@ -15,7 +15,7 @@ import { useWallet } from "@/lib/wallet-context"
 
 export function WalletButton() {
   const [copied, setCopied] = useState(false)
-  const { isConnected, address, balance, network, connectWallet, disconnectWallet, isConnecting } = useWallet()
+  const { isConnected, address, balance, network, chain, connectWallet, disconnectWallet, isConnecting } = useWallet()
 
   const handleCopyAddress = async () => {
     if (address) {
@@ -27,25 +27,32 @@ export function WalletButton() {
 
   const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
 
+  const isEthereum = chain === 'ethereum'
+  const walletLabel = isEthereum ? 'MetaMask' : 'Phantom / Solflare'
+  const currencySymbol = isEthereum ? 'ETH' : 'SOL'
+  const explorerUrl = isEthereum
+    ? `https://sepolia.arbiscan.io/address/${address}`
+    : `https://explorer.solana.com/address/${address}?cluster=devnet`
+
   // No wallet connected
   if (!isConnected) {
     return (
       <Button onClick={connectWallet} disabled={isConnecting} className="gap-2 glow-primary">
         {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-        <span className="hidden sm:inline">{isConnecting ? "Connecting..." : "Connect MetaMask"}</span>
+        <span className="hidden sm:inline">{isConnecting ? "Connecting..." : `Connect ${walletLabel}`}</span>
       </Button>
     )
   }
 
   // Wallet connected
-  const balanceDisplay = balance ? `${parseFloat(balance).toFixed(4)} ETH` : "Loading..."
+  const balanceDisplay = balance ? `${parseFloat(balance).toFixed(4)} ${currencySymbol}` : "Loading..."
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="gap-2 bg-transparent">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-accent"></div>
+            <div className={`w-2 h-2 rounded-full ${isEthereum ? 'bg-blue-400' : 'bg-green-400'}`}></div>
             <span className="hidden sm:inline font-mono text-sm">{formatAddress(address!)}</span>
             <ChevronDown className="h-3 w-3" />
           </div>
@@ -53,6 +60,12 @@ export function WalletButton() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <div className="p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">Chain</span>
+            <Badge variant="outline" className="text-xs capitalize">
+              {chain}
+            </Badge>
+          </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Balance</span>
             <span className="font-mono text-sm">{balanceDisplay}</span>
@@ -69,9 +82,11 @@ export function WalletButton() {
           <Copy className="h-4 w-4" />
           {copied ? "Copied!" : "Copy Address"}
         </DropdownMenuItem>
-        <DropdownMenuItem className="gap-2">
-          <ExternalLink className="h-4 w-4" />
-          View on Explorer
+        <DropdownMenuItem className="gap-2" asChild>
+          <a href={explorerUrl} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-4 w-4" />
+            View on Explorer
+          </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={disconnectWallet} className="gap-2 text-destructive">
