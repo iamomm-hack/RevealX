@@ -1,47 +1,34 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# Dependency directories
 node_modules/
 .pnp/
 .pnp.js
 .yarn/
+.yarn-integrity
 
-# testing
-coverage/
-/coverage
-
-# next.js
+# Next.js build and cache
 .next/
-/.next/
-/out/
-
-# production
-/build
+out/
 build/
+*.tsbuildinfo
 
-# Smart Contracts (Hardhat)
-smart-contracts/artifacts/
-smart-contracts/cache/
-smart-contracts/node_modules/
-smart-contracts/typechain/
-smart-contracts/typechain-types/
-smart-contracts/coverage/
-smart-contracts/coverage.json
+# Solana Anchor build artifacts (time_capsule_program)
+/time_capsule_program/target/
+/time_capsule_program/.anchor/
+/time_capsule_program/test-ledger/
+**/*.rs.bk
+
+# Hardhat build and cache (time-capsule/smart-contracts)
+/time-capsule/smart-contracts/artifacts/
+/time-capsule/smart-contracts/cache/
+/time-capsule/smart-contracts/node_modules/
+/time-capsule/smart-contracts/typechain/
+/time-capsule/smart-contracts/typechain-types/
+/time-capsule/smart-contracts/coverage/
+/time-capsule/smart-contracts/coverage.json
 .package-lock.json
 *.package-lock.json
 
-# misc
-.DS_Store
-*.pem
-*.key
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# local env files
+# Environment files
 .env
 .env.local
 .env.development.local
@@ -52,10 +39,28 @@ pnpm-debug.log*
 .env.backup
 .env.bak
 
-# vercel
-.vercel
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# OS files
+.DS_Store
+Thumbs.db
 
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Keys, certificates, and secrets
+*.pem
+*.key
+*secret*
+*.keystore

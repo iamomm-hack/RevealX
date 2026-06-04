@@ -1,0 +1,61 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules/
+.pnp/
+.pnp.js
+.yarn/
+
+# testing
+coverage/
+/coverage
+
+# next.js
+.next/
+/.next/
+/out/
+
+# production
+/build
+build/
+
+# Smart Contracts (Hardhat)
+smart-contracts/artifacts/
+smart-contracts/cache/
+smart-contracts/node_modules/
+smart-contracts/typechain/
+smart-contracts/typechain-types/
+smart-contracts/coverage/
+smart-contracts/coverage.json
+.package-lock.json
+*.package-lock.json
+
+# misc
+.DS_Store
+*.pem
+*.key
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+*.env
+.env.backup
+.env.bak
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+

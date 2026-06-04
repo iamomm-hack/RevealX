@@ -1,0 +1,19 @@
+.anchor/
+target/
+**/*.rs.bk
+node_modules/
+test-ledger/
+.yarn/
+.DS_Store
+
+# Environment files
+.env
+.env.local
+.env*.local
+*.env
+.env.backup
+.env.bak
+
+# IDEs
+.vscode/
+.idea/

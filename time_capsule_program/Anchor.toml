@@ -1,0 +1,15 @@
+[workspace]
+members = ["programs/time_capsule_program"]
+
+[programs.localnet]
+time_capsule_program = "GccELE2LzH3tot4qx6ooEjxryaAdZNJq4oP6quMhySKT"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "anchor test"
+
+[toolchain]
+anchor_version = "0.32.1"
