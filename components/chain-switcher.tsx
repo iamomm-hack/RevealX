@@ -22,14 +22,12 @@ const chains = {
   ethereum: {
     name: 'Ethereum',
     icon: '⟠',
-    color: 'bg-blue-500',
-    description: 'Hardhat Local / Arbitrum'
+    color: 'bg-blue-500'
   },
   solana: {
     name: 'Solana',
     icon: '◎',
-    color: 'bg-purple-500',
-    description: 'Devnet / Mainnet'
+    color: 'bg-purple-500'
   }
 }
 
@@ -53,10 +51,7 @@ export function ChainSwitcher({ currentChain, onChainChange }: ChainSwitcherProp
             className="gap-2 cursor-pointer"
           >
             <span className={`w-2 h-2 rounded-full ${chain.color}`}></span>
-            <div>
-              <div className="font-medium">{chain.icon} {chain.name}</div>
-              <div className="text-xs text-muted-foreground">{chain.description}</div>
-            </div>
+            <div className="font-medium">{chain.icon} {chain.name}</div>
             {currentChain === key && (
               <Badge variant="secondary" className="ml-auto text-xs">Active</Badge>
             )}
