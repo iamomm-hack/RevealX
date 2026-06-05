@@ -16,6 +16,7 @@ import { timeCapsuleService, Category, CATEGORY_NAMES } from "@/lib/contract-ser
 import { generateSymmetricKey, encryptContent, encryptSymmetricKey } from "@/lib/encryption-utils"
 import { uploadToIPFS } from "@/lib/ipfs-service"
 import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/utils"
 
 export default function CreateCapsulePage() {
   const [step, setStep] = useState(1)
@@ -85,7 +86,7 @@ export default function CreateCapsulePage() {
       setStep(4)
     } catch (error: any) {
       console.error("Failed to create capsule:", error)
-      toast.error(error?.message || "Failed to create capsule")
+      toast.error(getErrorMessage(error, "Failed to create capsule"))
     } finally {
       setIsCreating(false)
     }

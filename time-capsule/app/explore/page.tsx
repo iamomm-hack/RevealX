@@ -12,7 +12,10 @@ import { Clock, Users, Coins, Eye, Lock, TrendingUp } from "lucide-react"
 import { useWallet } from "@/lib/wallet-context"
 import { timeCapsuleService, Category, CATEGORY_NAMES, type Capsule } from "@/lib/contract-service"
 import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/utils"
 import { ethers } from "ethers"
+
+import { getJsonRpcProvider } from "@/lib/rpc-provider"
 
 interface PublicCapsule extends Capsule {
   predictionCount?: number
@@ -38,7 +41,7 @@ export default function ExplorePage() {
   const loadPublicCapsules = async () => {
     try {
       setLoading(true)
-      const rpcProvider = new ethers.JsonRpcProvider('http://127.0.0.1:8545')
+      const rpcProvider = getJsonRpcProvider()
       const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''
       
       if (!CONTRACT_ADDRESS || !ethers.isAddress(CONTRACT_ADDRESS)) {
@@ -111,7 +114,7 @@ export default function ExplorePage() {
       loadPublicCapsules()
     } catch (error: any) {
       console.error("Failed to make prediction:", error)
-      toast.error(error?.message || "Failed to submit prediction")
+      toast.error(getErrorMessage(error, "Failed to submit prediction"))
     } finally {
       setPredicting(false)
     }
