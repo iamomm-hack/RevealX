@@ -6,6 +6,8 @@ import { timeCapsuleService } from './contract-service';
 import { solanaTimeCapsuleService } from './solana-contract-service';
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { toast } from "sonner";
+import { getErrorMessage } from "./utils";
 
 type Chain = 'ethereum' | 'solana'
 
@@ -176,7 +178,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
     if (walletState.chain === 'ethereum') {
       if (typeof window === 'undefined' || !window.ethereum) {
-        alert('MetaMask is not installed.');
+        toast.error('MetaMask is not installed. Please install it to connect.');
         setWalletState(prev => ({ ...prev, isConnecting: false }));
         return;
       }
@@ -191,19 +193,33 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         });
         window.ethereum.on('chainChanged', () => window.location.reload());
 
+        toast.success("Ethereum wallet connected successfully!");
       } catch (error) {
         console.error("Failed to connect ETH wallet:", error);
+        toast.error(getErrorMessage(error, "Failed to connect MetaMask."));
         setWalletState(prev => ({ ...prev, isConnecting: false }));
       }
     } else {
       // Connect Solana
       try {
-        // Check which wallets are actually INSTALLED (not just registered)
+        // Fallback checks for window extension injection
+        const phantomInjected = typeof window !== 'undefined' && (window as any).solana?.isPhantom;
+        const solflareInjected = typeof window !== 'undefined' && (window as any).solflare?.isSolflare;
+
         const installed = solWallets.filter(
           w => w.readyState === 'Installed' || w.readyState === 'Loadable'
         );
-        const phantom = installed.find(w => w.adapter.name === 'Phantom');
-        const solflare = installed.find(w => w.adapter.name === 'Solflare');
+        
+        let phantom = installed.find(w => w.adapter.name === 'Phantom');
+        let solflare = installed.find(w => w.adapter.name === 'Solflare');
+        
+        if (!phantom && phantomInjected) {
+          phantom = solWallets.find(w => w.adapter.name === 'Phantom');
+        }
+        if (!solflare && solflareInjected) {
+          solflare = solWallets.find(w => w.adapter.name === 'Solflare');
+        }
+
         const wallet = phantom || solflare;
         
         if (wallet) {
@@ -212,9 +228,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           await new Promise(resolve => setTimeout(resolve, 300));
           try {
             await solConnect();
+            toast.success(`${wallet.adapter.name} connected successfully!`);
           } catch (e) {
             // Auto-connect may handle it via the useEffect
             console.log("solConnect:", e);
+            toast.error(`Failed to connect Solana wallet: ${getErrorMessage(e, "Connection failed")}`);
           }
         } else {
           // No wallet extension installed
@@ -231,6 +249,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         console.error("Failed to connect Solana wallet:", error);
+        toast.error(getErrorMessage(error, "Failed to connect Solana wallet"));
       } finally {
         setWalletState(prev => ({ ...prev, isConnecting: false }));
       }
@@ -276,19 +295,19 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         // Network not added to MetaMask — auto-add it
         if (error.code === 4902) {
           const networks: Record<string, any> = {
-            '0x66eee': {
-              chainId: '0x66eee',
-              chainName: 'Arbitrum Sepolia',
+            '0xaa36a7': {
+              chainId: '0xaa36a7',
+              chainName: 'Ethereum Sepolia',
               nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-              rpcUrls: ['https://sepolia-rollup.arbitrum.io/rpc'],
-              blockExplorerUrls: ['https://sepolia.arbiscan.io'],
+              rpcUrls: ['https://ethereum-sepolia-rpc.publicnode.com'],
+              blockExplorerUrls: ['https://sepolia.etherscan.io'],
             },
-            '0xa4b1': {
-              chainId: '0xa4b1',
-              chainName: 'Arbitrum One',
+            '0x1': {
+              chainId: '0x1',
+              chainName: 'Ethereum Mainnet',
               nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-              rpcUrls: ['https://arb1.arbitrum.io/rpc'],
-              blockExplorerUrls: ['https://arbiscan.io'],
+              rpcUrls: ['https://ethereum-rpc.publicnode.com'],
+              blockExplorerUrls: ['https://etherscan.io'],
             },
           };
           const networkParams = networks[networkId];

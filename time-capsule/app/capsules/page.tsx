@@ -11,6 +11,7 @@ import { CapsuleCard } from "@/components/capsule-card"
 import { UnlockModal } from "@/components/unlock-modal"
 import { timeCapsuleService } from "@/lib/contract-service"
 import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/utils"
 import Link from "next/link"
 
 export default function CapsulesPage() {
@@ -65,7 +66,7 @@ export default function CapsulesPage() {
       loadCapsules()
     } catch (error: any) {
       console.error("Failed to delete:", error)
-      toast.error(error?.message || "Failed to delete capsule")
+      toast.error(getErrorMessage(error, "Failed to delete capsule"))
     } finally {
       setDeleting(null)
     }

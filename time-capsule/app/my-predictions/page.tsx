@@ -8,7 +8,10 @@ import { Clock, TrendingUp, Check, X, Coins, Gift } from "lucide-react"
 import { useWallet } from "@/lib/wallet-context"
 import { timeCapsuleService, CATEGORY_NAMES, type Capsule, type Prediction } from "@/lib/contract-service"
 import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/utils"
 import { ethers } from "ethers"
+
+import { getJsonRpcProvider } from "@/lib/rpc-provider"
 
 interface UserPrediction {
   capsuleId: string
@@ -33,7 +36,7 @@ export default function MyPredictionsPage() {
   const loadUserPredictions = async () => {
     try {
       setLoading(true)
-      const rpcProvider = new ethers.JsonRpcProvider('http://127.0.0.1:8545')
+      const rpcProvider = getJsonRpcProvider()
       const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''
       
       if (!CONTRACT_ADDRESS || !ethers.isAddress(CONTRACT_ADDRESS)) {
@@ -129,7 +132,7 @@ export default function MyPredictionsPage() {
       loadUserPredictions()
     } catch (error: any) {
       console.error("Failed to claim:", error)
-      toast.error(error?.message || "Failed to claim reward")
+      toast.error(getErrorMessage(error, "Failed to claim reward"))
     } finally {
       setClaiming(null)
     }
