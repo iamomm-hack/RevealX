@@ -17,6 +17,8 @@ import { toast } from "sonner"
 import Link from "next/link"
 import { ethers } from "ethers"
 
+import { getJsonRpcProvider } from "@/lib/rpc-provider"
+
 export default function ProfilePage() {
   const [copied, setCopied] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -40,14 +42,14 @@ export default function ProfilePage() {
     stars: 0,
   })
   const [loadingStats, setLoadingStats] = useState(false)
-
+  
   useEffect(() => {
     if (!address) return
 
     const loadBlockchainStats = async () => {
       try {
         setLoadingStats(true)
-        const rpcProvider = new ethers.JsonRpcProvider('http://127.0.0.1:8545')
+        const rpcProvider = getJsonRpcProvider()
         const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''
         
         if (!CONTRACT_ADDRESS || !ethers.isAddress(CONTRACT_ADDRESS)) {

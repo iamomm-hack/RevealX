@@ -6,10 +6,7 @@ import { ChevronDown, Circle } from "lucide-react"
 import { useWallet } from "@/lib/wallet-context"
 
 const networks = [
-  { id: "polygon", name: "Polygon", color: "bg-purple-500" },
   { id: "ethereum", name: "Ethereum", color: "bg-blue-500" },
-  { id: "arbitrum", name: "Arbitrum", color: "bg-cyan-500" },
-  { id: "optimism", name: "Optimism", color: "bg-red-500" },
 ]
 
 export function NetworkSelector() {
