@@ -1,6 +1,8 @@
 import { ethers } from 'ethers';
 import { retrieveFromIPFS } from './ipfs-service';
 
+import { getJsonRpcProvider } from './rpc-provider';
+
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
 const CONTRACT_ABI = [
   "function getCapsule(uint256 _id) external view returns (tuple(uint256 id, address creator, address recipient, string ipfsCID, bytes encryptedKey, uint256 unlockTime, uint256 stakeAmount, address stakeToken, bool isUnlocked, bool stakeReleased))",
@@ -31,15 +33,14 @@ export interface Prediction {
   createdAt: number
 }
 
-// Get a read-only contract instance using local Hardhat RPC
+// Get a read-only contract instance using local or testnet RPC
 function getReadOnlyContract(): ethers.Contract | null {
   if (!CONTRACT_ADDRESS || !ethers.isAddress(CONTRACT_ADDRESS)) {
     console.error('[TimeCapsuleContract] No valid contract address configured:', CONTRACT_ADDRESS);
     return null;
   }
   
-  // Use localhost Hardhat network for local development (FREE!)
-  const provider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
+  const provider = getJsonRpcProvider();
   return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 }
 

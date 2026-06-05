@@ -10,8 +10,11 @@ import { useWallet } from "@/lib/wallet-context"
 import { getProfile, getInitials, type UserProfile } from "@/lib/user-profile-service"
 import { timeCapsuleService, type Capsule, CATEGORY_NAMES } from "@/lib/contract-service"
 import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/utils"
 import Link from "next/link"
 import { ethers } from "ethers"
+
+import { getJsonRpcProvider } from "@/lib/rpc-provider"
 
 interface PageProps {
   params: Promise<{ address: string }>
@@ -43,7 +46,7 @@ export default function UserProfilePage({ params }: PageProps) {
       setProfile(p)
       
       // Load capsules and stats from blockchain
-      const rpcProvider = new ethers.JsonRpcProvider('http://127.0.0.1:8545')
+      const rpcProvider = getJsonRpcProvider()
       const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''
       
       if (!CONTRACT_ADDRESS || !ethers.isAddress(CONTRACT_ADDRESS)) {
@@ -149,7 +152,7 @@ export default function UserProfilePage({ params }: PageProps) {
       }
     } catch (error: any) {
       console.error("Star error:", error)
-      toast.error(error?.message || "Failed to star")
+      toast.error(getErrorMessage(error, "Failed to star"))
     } finally {
       setStarring(false)
     }
@@ -167,7 +170,7 @@ export default function UserProfilePage({ params }: PageProps) {
       toast.success("Liked!")
       loadUserProfile()
     } catch (error: any) {
-      toast.error(error?.message || "Failed to like")
+      toast.error(getErrorMessage(error, "Failed to like"))
     }
   }
 
