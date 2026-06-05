@@ -20,6 +20,7 @@ export const getProgram = (wallet: Wallet) => {
     (idl as any).metadata?.address || "11111111111111111111111111111111"
   )
 
+  // @ts-ignore - IDL type compatibility
   return new Program(idl as any, programId, provider)
 }
 
