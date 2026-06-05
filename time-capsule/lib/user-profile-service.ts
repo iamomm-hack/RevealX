@@ -1,3 +1,5 @@
+import { isAddress } from 'ethers';
+
 // User Profile Service - localStorage based for username/avatar
 // Likes/Stars are on-chain via smart contract
 
@@ -40,14 +42,38 @@ export function saveProfile(profile: UserProfile) {
   saveAllProfiles(profiles)
 }
 
-// Search profiles by username
+// Search profiles by username or address
 export function searchProfiles(query: string): UserProfile[] {
   const profiles = getAllProfiles()
-  const lowerQuery = query.toLowerCase()
-  return Object.values(profiles).filter(p => 
-    p.username.toLowerCase().includes(lowerQuery) ||
-    p.address.toLowerCase().includes(lowerQuery)
+  const trimmedQuery = query.trim()
+  const lowerQuery = trimmedQuery.toLowerCase()
+  
+  const results = Object.values(profiles).filter(p => 
+    (p.username && p.username.toLowerCase().includes(lowerQuery)) ||
+    (p.address && p.address.toLowerCase().includes(lowerQuery))
   )
+  
+  // If the query is a valid Ethereum address and not in results, add a default profile for it
+  if (isAddress(trimmedQuery)) {
+    const cleanAddress = trimmedQuery.toLowerCase()
+    const alreadyExists = results.some(r => r.address.toLowerCase() === cleanAddress)
+    if (!alreadyExists) {
+      const existing = profiles[cleanAddress]
+      if (existing) {
+        results.push(existing)
+      } else {
+        results.push({
+          address: cleanAddress,
+          username: "Anonymous User",
+          avatarUrl: "",
+          bio: "This user has not set up a profile yet.",
+          createdAt: Date.now()
+        })
+      }
+    }
+  }
+  
+  return results;
 }
 
 // Get display name (username or truncated address)
