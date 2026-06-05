@@ -109,7 +109,7 @@ export default function DocsPage() {
                   <span className="text-xs font-bold uppercase tracking-wider text-foreground">CONNECT YOUR WALLET</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Use the header button to connect your MetaMask (for Ethereum/Arbitrum Sepolia/Hardhat Local) or Phantom (for Solana Devnet/Testnet/Mainnet) wallet.
+                  Use the header button to connect your MetaMask (for Ethereum Sepolia/Hardhat Local) or Phantom (for Solana Devnet/Testnet/Mainnet) wallet.
                 </p>
                 <CodeBlock code={`# Faucets for local development:\n# EVM (Hardhat local node): http://127.0.0.1:8545\n# Solana (Devnet faucet): solana airdrop 1 <YOUR_WALLET_ADDRESS>`} />
               </div>
@@ -137,7 +137,7 @@ export default function DocsPage() {
                 <p className="text-xs text-muted-foreground">
                   Community members can browse public capsules in the explore feed and stake native tokens guessing the true category.
                 </p>
-                <CodeBlock title="SOLIDITY" code={`// Predict the capsule category on Ethereum/Arbitrum\ntransaction = await timeCapsuleContract.makePrediction(\n    capsuleId,\n    uint8(Category.CryptoProfit),\n    { value: ethers.parseEther("0.005") }\n);`} />
+                <CodeBlock title="SOLIDITY" code={`// Predict the capsule category on Ethereum\ntransaction = await timeCapsuleContract.makePrediction(\n    capsuleId,\n    uint8(Category.CryptoProfit),\n    { value: ethers.parseEther("0.005") }\n);`} />
               </div>
 
               <div className="border-t border-border/10 my-6" />
@@ -445,7 +445,7 @@ export default function DocsPage() {
               <h2 className="text-2xl font-bold uppercase tracking-tight">SUPPORTED NETWORKS</h2>
             </div>
             <p className="text-muted-foreground text-sm">
-              Networks supported by RevealX. Solana runs on Testnet, Devnet, and Mainnet. Ethereum/EVM runs strictly on Arbitrum Sepolia and Hardhat Local.
+              Networks supported by RevealX. Solana runs on Testnet, Devnet, and Mainnet. Ethereum/EVM runs strictly on Ethereum Sepolia and Hardhat Local.
             </p>
 
             <div className="border border-border/40 bg-[#0d0e14] rounded-xl overflow-hidden shadow-sm">
@@ -467,8 +467,8 @@ export default function DocsPage() {
                   </tr>
                   <tr>
                     <td className="p-4 font-semibold text-foreground">Ethereum/EVM</td>
-                    <td className="p-4">Arbitrum Sepolia</td>
-                    <td className="p-4 font-mono">https://sepolia-rollup.arbitrum.io/rpc</td>
+                    <td className="p-4">Ethereum Sepolia</td>
+                    <td className="p-4 font-mono">https://ethereum-sepolia-rpc.publicnode.com</td>
                     <td className="p-4 text-emerald-500 font-bold uppercase">Supported</td>
                   </tr>
                   <tr>

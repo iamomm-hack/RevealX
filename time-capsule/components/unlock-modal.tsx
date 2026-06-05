@@ -10,6 +10,7 @@ import type { TimeCapsule } from "@/lib/smart-contracts"
 import { timeCapsuleService, CATEGORY_NAMES } from "@/lib/contract-service"
 import { useWallet } from "@/lib/wallet-context"
 import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/utils"
 
 interface UnlockModalProps {
   capsule: TimeCapsule | null
@@ -46,7 +47,7 @@ export function UnlockModal({ capsule, open, onOpenChange, onUnlockComplete }: U
       onUnlockComplete()
     } catch (error: any) {
       console.error("Failed to unlock capsule:", error)
-      toast.error(error?.message || "Failed to unlock capsule")
+      toast.error(getErrorMessage(error, "Failed to unlock capsule"))
     } finally {
       setIsUnlocking(false)
     }
@@ -64,7 +65,7 @@ export function UnlockModal({ capsule, open, onOpenChange, onUnlockComplete }: U
       onUnlockComplete()
     } catch (error: any) {
       console.error("Failed to claim reward:", error)
-      toast.error(error?.message || "Failed to claim reward - maybe wrong prediction?")
+      toast.error(getErrorMessage(error, "Failed to claim reward - maybe wrong prediction?"))
     } finally {
       setIsClaiming(false)
     }
