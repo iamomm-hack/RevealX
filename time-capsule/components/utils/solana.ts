@@ -20,7 +20,7 @@ export const getProgram = (wallet: Wallet) => {
     (idl as any).metadata?.address || "11111111111111111111111111111111"
   )
 
-  return new Program(idl as Idl, programId, provider)
+  return new Program(idl as any, programId, provider)
 }
 
 // ---------------- Metaplex helper (for NFT minting) ----------------
